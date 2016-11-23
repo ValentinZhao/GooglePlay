@@ -1,0 +1,40 @@
+package com.test.zhaoziliang.googleplay.Fragment;
+
+import android.support.v4.app.Fragment;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Created by zhaoziliang on 16/11/23.
+ */
+
+public class FragmentFactory {
+    private static Map<Integer, Fragment> mFragments = new HashMap<Integer, Fragment>();
+    public static Fragment createFragment(int position){
+        Fragment fragment;
+        fragment = mFragments.get(position);
+        if(fragment == null){
+                if (position == 0) {
+                    fragment = new HomeFragment();
+                } else if (position == 1) {
+                    fragment = new AppFragment();
+                } else if (position == 2) {
+                    fragment = new GameFragment();
+                } else if (position == 3) {
+                    fragment = new SubjectFragment();
+                } else if (position == 4) {
+                    fragment = new CategoryFragment();
+                } else if (position == 5) {
+                    fragment = new TopFragment();
+                }
+        }
+        /**
+         * 把创建好的fragment保存起来
+         */
+        if(fragment != null){
+            mFragments.put(position, fragment);
+        }
+        return fragment;
+    }
+}
