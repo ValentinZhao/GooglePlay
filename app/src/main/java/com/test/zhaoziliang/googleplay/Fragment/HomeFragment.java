@@ -1,135 +1,110 @@
 package com.test.zhaoziliang.googleplay.Fragment;
 
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
+import android.text.format.Formatter;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.lidroid.xutils.bitmap.PauseOnScrollListener;
 import com.test.zhaoziliang.googleplay.Enum.LoadResult;
+import com.test.zhaoziliang.googleplay.Model.AppInfo;
+import com.test.zhaoziliang.googleplay.Protocol.HomeProtocal;
 import com.test.zhaoziliang.googleplay.R;
+import com.test.zhaoziliang.googleplay.Utils.UiUtils;
+import com.test.zhaoziliang.googleplay.Widget.BaseListView;
+
+import java.util.List;
+
+import static com.test.zhaoziliang.googleplay.Protocol.BaseProtocal.SERVER_URL;
 
 /**
  * Created by zhaoziliang on 16/11/23.
  */
 
-public class HomeFragment extends Fragment {
-    private FrameLayout frameLayout;
-    private View emptyView;
-    private View loadingView;
-    private View errorView;
-    private View successView;
+public class HomeFragment extends BaseFragment {
+    private List<AppInfo> data;
 
-    public static final int STATE_UNKNOWN = 0;
-    public static final int STATE_LOADING = 1;
-    public static final int STATE_EMPTY = 2;
-    public static final int STATE_ERROR = 3;
-    public static final int STATE_SUCCESS = 4;
-
-    private int state = STATE_UNKNOWN;
-
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        if(frameLayout == null){
-            frameLayout = new FrameLayout(getActivity());
-            init();
-        } else {
-            com.test.zhaoziliang.googleplay.Utils.ViewUtils.removeParent(frameLayout);
-        }
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         show();//根据服务器状态来显示
-        return frameLayout;
     }
 
-    /**
-     * 将所有界面:空界面、错误界面等都重叠在FrameLayout中,根据state来选择显示哪个View
-     */
-    private void init() {
-        loadingView = createLoadingView();
-        if(loadingView != null){
-            frameLayout.addView(loadingView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT));
-        }
-        emptyView = createEmptyView();
-        if(emptyView != null){
-            frameLayout.addView(emptyView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT));
-        }
-        errorView = createErrorView();
-        if(errorView != null){
-            frameLayout.addView(errorView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT));
-        }
-        showPageByState();
+    @Override
+    public View createSuccessView() {
+//        TextView tv = new TextView(getActivity());
+//        tv.setText("Loading Complete!");
+//        tv.setTextSize(28);
+//        return tv;
+        BaseListView mListView = new BaseListView(UiUtils.getContext());
+        mListView.setOnScrollListener(new PauseOnScrollListener(bitmapUtils, false, true));
+        bitmapUtils.configDefaultLoadingImage(R.drawable.ic_default);
+        bitmapUtils.configDefaultLoadFailedImage(R.drawable.ic_default);
+        return mListView;
     }
 
-    private void showPageByState() {
-        if(loadingView != null){
-            loadingView.setVisibility(state == STATE_UNKNOWN || state == STATE_LOADING ? View.VISIBLE : View.INVISIBLE);
+    @Override
+    public LoadResult load() {
+        HomeProtocal protocal = new HomeProtocal();
+        data = protocal.load(1);
+        return checkData(data);
+    }
+
+    private class HomeAdapter extends BaseAdapter{
+
+        @Override
+        public int getCount() {
+            return data.size();
         }
-        if (emptyView != null){
-            emptyView.setVisibility(state == STATE_EMPTY ? View.VISIBLE : View.INVISIBLE);
+
+        @Override
+        public Object getItem(int position) {
+            return data.get(position);
         }
-        if (errorView != null){
-            errorView.setVisibility(state == STATE_ERROR ? View.VISIBLE : View.INVISIBLE);
+
+        @Override
+        public long getItemId(int position) {
+            return position;
         }
-        if(state == STATE_SUCCESS){
-            successView = createSuccessView();
-            if(successView != null){
-                frameLayout.addView(successView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT));
-                successView.setVisibility(View.VISIBLE);
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ViewHolder holder;
+            if(convertView == null){
+                holder = new ViewHolder();
+                convertView = View.inflate(getActivity(), R.layout.app_item, null);
+                holder.item_icon = (ImageView) convertView.findViewById(R.id.item_icon);
+                holder.item_title = (TextView) convertView.findViewById(R.id.item_title);
+                holder.item_size = (TextView) convertView.findViewById(R.id.item_size);
+                holder.item_bottom = (TextView) convertView.findViewById(R.id.item_bottom);
+                holder.item_rating = (RatingBar) convertView.findViewById(R.id.item_rating);
+                convertView.setTag(holder);
+            } else {
+                holder = (ViewHolder) convertView.getTag();
             }
+            AppInfo info = data.get(position);
+            holder.item_title.setText(info.getName());
+            String size = Formatter.formatFileSize(UiUtils.getContext(), info.getSize());
+            holder.item_size.setText(size);
+            holder.item_bottom.setText(info.getDes());
+            float stars = info.getStars();
+            holder.item_rating.setRating(stars);
+            String iconUrl = info.getIconUrl();
+            bitmapUtils.display(holder.item_icon, SERVER_URL + iconUrl);
+            return convertView;
         }
     }
 
-    private View createSuccessView() {
-        TextView tv = new TextView(getActivity());
-        tv.setText("Loading Complete!");
-        tv.setTextSize(28);
-        return tv;
-    }
-
-    private View createErrorView() {
-        return View.inflate(getActivity(), R.layout.loadpage_error, null);
-    }
-
-    private View createEmptyView() {
-        return View.inflate(getActivity(), R.layout.loadpage_empty, null);
-    }
-
-    private View createLoadingView() {
-        return View.inflate(getActivity(), R.layout.loadpage_loading, null);
-    }
-
-    private void show() {
-        if(state == STATE_ERROR || state == STATE_EMPTY){
-            state = STATE_LOADING;
-        }
-        new Thread(){
-            @Override
-            public void run() {
-                SystemClock.sleep(2000);
-                final LoadResult result = load();
-                if(getActivity() != null){
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            state = result.getValue();
-                            showPageByState();
-                        }
-                    });
-                }
-            }
-        }.start();
-        showPageByState();
-    }
-
-    private LoadResult load() {
-        return LoadResult.success;
+    static class ViewHolder{
+        ImageView item_icon;
+        TextView item_title;
+        TextView item_size;
+        TextView item_bottom;
+        RatingBar item_rating;
     }
 }
