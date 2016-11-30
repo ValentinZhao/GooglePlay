@@ -16,9 +16,33 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        init();
-        initView();
-        initActionBar();
+        synchronized (mActivities){
+            init();
+            initView();
+            initActionBar();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        synchronized (mActivities){
+            mActivities.remove(this);
+        }
+    }
+
+    public void killAll(){
+        List<BaseActivity> copy;
+        synchronized (mActivities){
+            copy = new LinkedList<>(mActivities);
+        }
+        for(BaseActivity activity : copy){
+            activity.finish();
+        }
+        /***
+         * kill current process
+         */
+        android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     protected void init(){

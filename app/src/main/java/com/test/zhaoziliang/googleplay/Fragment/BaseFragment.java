@@ -52,11 +52,14 @@ public abstract class BaseFragment extends Fragment {
 
     public LoadResult checkData(List data){
         if(data == null){
+            System.out.println("加载数据为空啊!!!!!!");
             return LoadResult.error;
         }
         if(data.size() == 0){
+            System.out.println("加载到了数据但没有数据注入");
             return LoadResult.empty;
         } else {
+            System.out.println("加载到了数据");
             return LoadResult.success;
         }
     }

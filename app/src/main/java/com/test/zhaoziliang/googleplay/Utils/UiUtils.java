@@ -3,6 +3,7 @@ package com.test.zhaoziliang.googleplay.Utils;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.view.View;
 
 import com.test.zhaoziliang.googleplay.UI.BaseApplication;
 
@@ -43,5 +44,9 @@ public class UiUtils {
 
     public static Drawable getDrawalbe(int id) {
         return getResources().getDrawable(id);
+    }
+
+    public static View inflate(int resId){
+        return View.inflate(getContext(), resId, null);
     }
 }

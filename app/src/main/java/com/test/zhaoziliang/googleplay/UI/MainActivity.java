@@ -48,13 +48,13 @@ public class MainActivity extends BaseActivity implements SearchView.OnQueryText
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                Toast.makeText(MainActivity.this, "抽屉打开了", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "抽屉打开了", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
-                Toast.makeText(MainActivity.this, "抽屉关上了", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "抽屉关上了", Toast.LENGTH_SHORT).show();
             }
         };
         mDrawerLayout.setDrawerListener(toggle);
